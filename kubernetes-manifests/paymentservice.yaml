@@ -53,6 +53,7 @@ spec:
           privileged: false
           # readOnlyRootFilesystem: true
         image: paymentservice
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 50051
         env:
