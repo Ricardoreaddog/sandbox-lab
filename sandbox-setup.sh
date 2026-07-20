@@ -19,14 +19,10 @@ sudo install minikube-linux-amd64 /usr/local/bin/minikube
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-# --- skaffold ---
-curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
-sudo install skaffold /usr/local/bin/
-
 # --- Helm ---
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-# --- Fix Docker client/daemon API mismatch so skaffold can build ---
+# --- Fix Docker client/daemon API mismatch so docker build works ---
 grep -q 'DOCKER_API_VERSION' ~/.bashrc || echo 'export DOCKER_API_VERSION=1.44' >> ~/.bashrc
 
 echo ""
