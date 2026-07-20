@@ -1,32 +1,28 @@
-# Chris: I'm commenting this out to test a few things. Need a proper shell with utilities and everything. We can always change this back later.
-#FROM openjdk:17-jdk-alpine
-FROM ubuntu:20.04 
+# --- Build stage: compile the source into a runnable JAR ---
+# (We build from source so code fixes in PaymentController take effect, instead
+#  of copying a pre-built JAR from releases/.)
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /build
+COPY pom.xml .
+COPY src ./src
+RUN mvn -q -B -DskipTests package
 
-# Chris: I'm also installing the utilities I need to debug some database issues I discovered. Need to comment out before we push this to production
-RUN apt-get update
-RUN apt-get install -y openjdk-17-jdk
-RUN apt-get install -y mariadb-client
-RUN apt-get install -y wget
-RUN apt-get install -y curl vim
-# Chris: I'm adding this to debug
-RUN apt-get -y install sudo
+# --- Runtime stage ---
+FROM ubuntu:20.04
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openjdk-17-jdk wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/data
-RUN chmod -R 777 /app/data
-
-# Chris: just testing something with version 0.6.1 - broke artifactory so will just use local builds for now. What could go wrong?
-COPY releases/paymentservicejava-0.6.1.jar /app/paymentservice.jar
+RUN mkdir -p /app/data && chmod -R 777 /app/data
+COPY --from=build /build/target/paymentservicejava-*.jar /app/paymentservice.jar
 
 WORKDIR /app
 RUN wget -O dd-java-agent.jar https://dtdg.co/latest-java-tracer
- 
-# Datadog - Enable tracer
+
+# Datadog tracer (APM single-step instrumentation also injects it at runtime)
 ENV DD_PROFILING_ENABLED=true
 ENV DD_LOGS_INJECTION=true
- 
 ENV JAVA_OPTS=-javaagent:dd-java-agent.jar
-ENV CTHULHU_URL=${CTULHU_URL}
 
-WORKDIR /app
 ENTRYPOINT ["java","-jar","/app/paymentservice.jar"]
 EXPOSE 9090
