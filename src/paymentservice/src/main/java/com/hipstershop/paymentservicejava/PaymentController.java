@@ -31,50 +31,13 @@ public class PaymentController {
         int nanos = request.getAmount().getNanos();
         String ccNumber = request.getCreditCard().getCreditCardNumber();
 
-        // perform payment "API call"
-        boolean rateLimited = true; // should be set to false. Set to true for testing by Chris
-        try {
-            URL u = new URL("https://developer.paypal.com/");
-            InputStream in = u.openStream();
-            new String(in.readAllBytes(), StandardCharsets.UTF_8); 
-            log.info(String.format("Processing transaction: %s ending %s Amount: %s%d.%d", 
-            this.getCardtypeByNumber(ccNumber), 
-            ccNumber.substring(ccNumber.length()-5), 
+        log.info(String.format("Processing transaction: %s ending %s Amount: %s%d.%d",
+            this.getCardtypeByNumber(ccNumber),
+            ccNumber.substring(ccNumber.length()-5),
             currency,
             amount,
             nanos));
-        } catch (Exception e) {
-            rateLimited = true;
-            e.printStackTrace();
-        }
 
-        Random r = new Random(System.currentTimeMillis());
-        if(r.nextBoolean()) {
-            for(double i=0; i<500000; i++) { // let's waste some time to make it look like we're waiting for a table lock
-                Math.sqrt(i);
-            }
-            throw new LockTimeoutException("Lock wait timeout exceeded; try restarting transaction");
-        } 
-
-        if(rateLimited) {
-                // let's make sure we do not have this request in our database already
-                Iterable<PaymentRecord> records = this.repo.findAll();
-                for(PaymentRecord record : records) {
-                    if(record.getCreditcardnumber().equals(ccNumber) && record.getAmount() == amount.doubleValue()) {
-                        log.info("Payment already on record!?");
-                    }
-                }
-                // persist payment data to the database in case we need to retry later due to rate limits
-                PaymentRecord rec = new PaymentRecord();
-                String amountS = String.valueOf(amount) + "." + String.valueOf(nanos);
-                rec.setAmount(Double.parseDouble(amountS));
-                rec.setCreditcardnumber(ccNumber);
-                rec.setCvvcode(String.valueOf(request.getCreditCard().getCreditCardCvv()));
-                rec.setExpirationMonth(request.getCreditCard().getCreditCardExpirationMonth());
-                rec.setExpirationYear(request.getCreditCard().getCreditCardExpirationYear());
-                rec.setPaymentstatus("transaction rate limited");
-                repo.save(rec);
-        } 
         return generateTransactionId();
     }
 
