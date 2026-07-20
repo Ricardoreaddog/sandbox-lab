@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sandbox prerequisites: Docker, git, minikube, kubectl, skaffold, Helm.
+# Sandbox prerequisites: Docker, git, minikube, kubectl, Helm.
 # Keep this script — rerun it on a fresh VM to build another sandbox anytime.
 
 # --- Docker & git ---
