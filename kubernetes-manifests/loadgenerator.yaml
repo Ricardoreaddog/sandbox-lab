@@ -18,7 +18,7 @@ kind: Deployment
 metadata:
   name: loadgenerator
   labels:
-      tags.datadoghq.com/env: "tsreenv"
+      tags.datadoghq.com/env: "sandbox"
       tags.datadoghq.com/service: "loadgenerator"
       tags.datadoghq.com/version: "1.0"
 spec:
