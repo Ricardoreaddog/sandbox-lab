@@ -12,6 +12,7 @@ on:
     paths:
       - 'src/paymentservice/**'
       - 'src/loadgenerator/**'
+      - 'src/frontend/**'
       - '.github/workflows/build-images.yml'
   workflow_dispatch: {}
 
@@ -20,6 +21,16 @@ permissions:
   packages: write
 
 jobs:
+  # The frontend is built locally by learners (the RUM challenge rebuilds it), and
+  # the lab uses the classic Docker builder (DOCKER_BUILDKIT=0) so the image lands
+  # in minikube's daemon. Validate the Dockerfile builds that exact way.
+  validate-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build frontend with the classic builder (as the lab does)
+        run: DOCKER_BUILDKIT=0 docker build -t frontend-test src/frontend
+
   build:
     runs-on: ubuntu-latest
     strategy:
