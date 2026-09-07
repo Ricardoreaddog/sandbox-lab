@@ -52,8 +52,8 @@ spec:
               - all
           privileged: false
           # readOnlyRootFilesystem: true
-        image: paymentservice
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/ricardoreaddog/paymentservice:sandbox
+        imagePullPolicy: Always
         ports:
         - containerPort: 50051
         env:

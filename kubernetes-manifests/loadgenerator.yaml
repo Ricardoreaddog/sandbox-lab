@@ -74,8 +74,8 @@ spec:
               - all
           privileged: false
           readOnlyRootFilesystem: true
-        image: loadgenerator
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/ricardoreaddog/loadgenerator:sandbox
+        imagePullPolicy: Always
         env:
         - name: DD_ENV
           valueFrom:

@@ -1,0 +1,46 @@
+name: Build sandbox images
+
+# Builds the cleaned Swagstore images that learners should NOT have to build
+# themselves (paymentservice is a slow multi-stage Maven build; loadgenerator's
+# upstream image was unavailable) and publishes them to GHCR so the Kubernetes
+# manifests can just pull them. The `frontend` image is intentionally NOT built
+# here — the RUM challenge requires learners to edit and rebuild it locally.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/paymentservice/**'
+      - 'src/loadgenerator/**'
+      - '.github/workflows/build-images.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [paymentservice, loadgenerator]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: src/${{ matrix.service }}
+          push: true
+          tags: ghcr.io/ricardoreaddog/${{ matrix.service }}:sandbox
+          labels: |
+            org.opencontainers.image.source=https://github.com/Ricardoreaddog/sandbox-lab
