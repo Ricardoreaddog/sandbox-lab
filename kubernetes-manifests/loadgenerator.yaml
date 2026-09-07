@@ -44,15 +44,14 @@ spec:
       initContainers:
       - command:
         - /bin/sh
-        - -exc
+        - -c
         - |
-          echo "Init container pinging frontend: ${FRONTEND_ADDR}..."
-          sleep 30
-          STATUSCODE=$(wget --server-response http://${FRONTEND_ADDR} 2>&1 | awk '/^  HTTP/{print $2}')
-          if test $STATUSCODE -ne 200; then
-              echo "Error: Could not reach frontend - Status code: ${STATUSCODE}"
-              exit 1
-          fi
+          echo "Waiting for frontend at ${FRONTEND_ADDR}..."
+          until wget -q -T 2 -O /dev/null "http://${FRONTEND_ADDR}"; do
+            echo "frontend not ready yet, retrying in 3s..."
+            sleep 3
+          done
+          echo "Frontend is reachable — starting load generator."
         name: frontend-check
         securityContext:
           allowPrivilegeEscalation: false
