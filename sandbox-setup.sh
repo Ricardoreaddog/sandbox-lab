@@ -24,6 +24,8 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 # --- Fix Docker client/daemon API mismatch so docker build works ---
 grep -q 'DOCKER_API_VERSION' ~/.bashrc || echo 'export DOCKER_API_VERSION=1.44' >> ~/.bashrc
+# --- Use the classic builder (not buildx/buildkit) so images land in the daemon ---
+grep -q 'DOCKER_BUILDKIT' ~/.bashrc || echo 'export DOCKER_BUILDKIT=0' >> ~/.bashrc
 
 echo ""
 echo "✅ Prerequisites installed. Open a new shell (or run: source ~/.bashrc) then start minikube."
